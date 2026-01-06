@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exercise Tracker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .add-exercise {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .add-exercise input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .add-exercise input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .add-exercise button {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .add-exercise button:hover {
+            background: #5568d3;
+        }
+
+        .exercises-list {
+            list-style: none;
+        }
+
+        .exercise-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .exercise-item:hover {
+            background: #e9ecef;
+            transform: translateX(5px);
+        }
+
+        .exercise-item.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .exercise-name {
+            flex: 1;
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .delete-btn {
+            background: #ff4757;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.3s;
+            margin-left: 10px;
+        }
+
+        .delete-btn:hover {
+            background: #ee3542;
+        }
+
+        .exercise-item.selected .delete-btn {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .exercise-item.selected .delete-btn:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .error-message {
+            background: #ffebee;
+            color: #c62828;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .error-message.show {
+            display: block;
+        }
+
+        .wake-lock-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 12px 20px;
+            margin-bottom: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            user-select: none;
+        }
+
+        .wake-lock-toggle:hover {
+            background: #e9ecef;
+        }
+
+        .wake-lock-toggle.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 26px;
+            background: #ccc;
+            border-radius: 13px;
+            transition: background 0.3s;
+        }
+
+        .toggle-switch.active {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 3px;
+            left: 3px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle-switch.active .toggle-slider {
+            transform: translateX(24px);
+        }
+
+        .wake-lock-label {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .wake-lock-toggle.unavailable {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>💪 Exercise Tracker</h1>
+            <p>Click exercises to highlight them during your workout</p>
+        </div>
+        <div class="content">
+            <div class="error-message" id="errorMessage"></div>
+
+            <div class="wake-lock-toggle" id="wakeLockToggle" onclick="toggleWakeLock()">
+                <div class="toggle-switch" id="toggleSwitch">
+                    <div class="toggle-slider"></div>
+                </div>
+                <span class="wake-lock-label">Keep screen on</span>
+            </div>
+
+            <div class="add-exercise">
+                <input
+                    type="text"
+                    id="exerciseInput"
+                    placeholder="Enter exercise name..."
+                    onkeypress="if(event.key === 'Enter') addExercise()"
+                >
+                <button onclick="addExercise()">Add Exercise</button>
+            </div>
+
+            <ul class="exercises-list" id="exercisesList">
+                <li class="empty-state">No exercises yet. Add one to get started!</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        let exercises = [];
+        let selectedExercises = new Set();
+        let wakeLock = null;
+        let isWakeLockActive = false;
+
+        // Load exercises on page load
+        async function loadExercises() {
+            try {
+                const response = await fetch('/api/exercises');
+                exercises = await response.json();
+                renderExercises();
+            } catch (error) {
+                showError('Failed to load exercises');
+            }
+        }
+
+        // Render exercises list
+        function renderExercises() {
+            const list = document.getElementById('exercisesList');
+
+            if (exercises.length === 0) {
+                list.innerHTML = '<li class="empty-state">No exercises yet. Add one to get started!</li>';
+                return;
+            }
+
+            list.innerHTML = exercises.map(exercise => `
+                <li class="exercise-item ${selectedExercises.has(exercise.name) ? 'selected' : ''}"
+                    onclick="toggleExercise('${exercise.name.replace(/'/g, "\\'")}')">
+                    <span class="exercise-name">${escapeHtml(exercise.name)}</span>
+                    <button class="delete-btn" onclick="event.stopPropagation(); deleteExercise('${exercise.name.replace(/'/g, "\\'")}')">
+                        Delete
+                    </button>
+                </li>
+            `).join('');
+        }
+
+        // Toggle exercise selection
+        function toggleExercise(name) {
+            if (selectedExercises.has(name)) {
+                selectedExercises.delete(name);
+            } else {
+                selectedExercises.add(name);
+            }
+            renderExercises();
+        }
+
+        // Add new exercise
+        async function addExercise() {
+            const input = document.getElementById('exerciseInput');
+            const name = input.value.trim();
+
+            if (!name) {
+                showError('Please enter an exercise name');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/exercises', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    showError(error.error || 'Failed to add exercise');
+                    return;
+                }
+
+                exercises = await response.json();
+                input.value = '';
+                hideError();
+                renderExercises();
+            } catch (error) {
+                showError('Failed to add exercise');
+            }
+        }
+
+        // Delete exercise
+        async function deleteExercise(name) {
+            if (!confirm(`Delete "${name}"?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/exercises/${encodeURIComponent(name)}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    showError('Failed to delete exercise');
+                    return;
+                }
+
+                exercises = await response.json();
+                selectedExercises.delete(name);
+                renderExercises();
+            } catch (error) {
+                showError('Failed to delete exercise');
+            }
+        }
+
+        // Error handling
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.classList.add('show');
+            setTimeout(hideError, 5000);
+        }
+
+        function hideError() {
+            document.getElementById('errorMessage').classList.remove('show');
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Wake Lock functionality
+        async function toggleWakeLock() {
+            if (!('wakeLock' in navigator)) {
+                showError('Screen wake lock is not supported in this browser');
+                return;
+            }
+
+            try {
+                if (isWakeLockActive && wakeLock) {
+                    // Release wake lock
+                    await wakeLock.release();
+                    wakeLock = null;
+                    isWakeLockActive = false;
+                    updateWakeLockUI(false);
+                } else {
+                    // Request wake lock
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    isWakeLockActive = true;
+                    updateWakeLockUI(true);
+
+                    // Handle wake lock release (e.g., when tab becomes hidden)
+                    wakeLock.addEventListener('release', () => {
+                        isWakeLockActive = false;
+                        updateWakeLockUI(false);
+                    });
+                }
+            } catch (error) {
+                if (error.name === 'NotAllowedError') {
+                    showError('Permission denied. Please allow screen wake lock in your browser settings.');
+                } else {
+                    showError('Failed to toggle screen wake lock: ' + error.message);
+                }
+            }
+        }
+
+        function updateWakeLockUI(active) {
+            const toggle = document.getElementById('wakeLockToggle');
+            const switchElement = document.getElementById('toggleSwitch');
+
+            if (active) {
+                toggle.classList.add('active');
+                switchElement.classList.add('active');
+            } else {
+                toggle.classList.remove('active');
+                switchElement.classList.remove('active');
+            }
+        }
+
+        // Check if wake lock is supported
+        function initWakeLock() {
+            if (!('wakeLock' in navigator)) {
+                const toggle = document.getElementById('wakeLockToggle');
+                toggle.classList.add('unavailable');
+                toggle.onclick = null;
+                const label = toggle.querySelector('.wake-lock-label');
+                label.textContent = 'Keep screen on (not supported)';
+            }
+
+            // Handle visibility change - reacquire wake lock if needed
+            document.addEventListener('visibilitychange', async () => {
+                if (isWakeLockActive && document.visibilityState === 'visible' && !wakeLock) {
+                    try {
+                        wakeLock = await navigator.wakeLock.request('screen');
+                        wakeLock.addEventListener('release', () => {
+                            isWakeLockActive = false;
+                            updateWakeLockUI(false);
+                        });
+                    } catch (error) {
+                        // Silently fail - user can toggle again if needed
+                        isWakeLockActive = false;
+                        updateWakeLockUI(false);
+                    }
+                }
+            });
+        }
+
+        // Initialize
+        loadExercises();
+        initWakeLock();
+    </script>
+</body>
+</html>
+
