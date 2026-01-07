@@ -39,45 +39,25 @@
             margin-bottom: 10px;
         }
 
+        .nav-link {
+            display: inline-block;
+            margin-top: 15px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: background 0.3s;
+        }
+
+        .nav-link:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
         .content {
             padding: 30px;
         }
 
-        .add-exercise {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-        }
-
-        .add-exercise input {
-            flex: 1;
-            padding: 12px 16px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-
-        .add-exercise input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .add-exercise button {
-            padding: 12px 24px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        .add-exercise button:hover {
-            background: #5568d3;
-        }
 
         .exercises-list {
             list-style: none;
@@ -113,30 +93,6 @@
             font-weight: 500;
         }
 
-        .delete-btn {
-            background: #ff4757;
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: background 0.3s;
-            margin-left: 10px;
-        }
-
-        .delete-btn:hover {
-            background: #ee3542;
-        }
-
-        .exercise-item.selected .delete-btn {
-            background: rgba(255, 255, 255, 0.3);
-        }
-
-        .exercise-item.selected .delete-btn:hover {
-            background: rgba(255, 255, 255, 0.5);
-        }
 
         .empty-state {
             text-align: center;
@@ -275,22 +231,6 @@
             gap: 10px;
         }
 
-        .section-delete-btn {
-            background: rgba(255, 255, 255, 0.3);
-            color: white;
-            border: none;
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 600;
-            transition: background 0.3s;
-        }
-
-        .section-delete-btn:hover {
-            background: rgba(255, 255, 255, 0.5);
-        }
-
         .section-content {
             overflow: hidden;
             transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
@@ -304,60 +244,7 @@
             margin: 0;
         }
 
-        .section-selector {
-            padding: 12px 16px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 16px;
-            background: white;
-            cursor: pointer;
-            transition: border-color 0.3s;
-            min-width: 150px;
-        }
 
-        .section-selector:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .add-section {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            padding: 15px;
-            background: #f8f9fa;
-            border-radius: 10px;
-        }
-
-        .add-section input {
-            flex: 1;
-            padding: 12px 16px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 16px;
-            transition: border-color 0.3s;
-        }
-
-        .add-section input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .add-section button {
-            padding: 12px 24px;
-            background: #764ba2;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-
-        .add-section button:hover {
-            background: #5d3a7a;
-        }
     </style>
 </head>
 <body>
@@ -365,6 +252,7 @@
         <div class="header">
             <h1>💪 Exercise Tracker</h1>
             <p>Click exercises to highlight them during your workout</p>
+            <a href="/admin.html" class="nav-link">⚙️ Admin Panel</a>
         </div>
         <div class="content">
             <div class="error-message" id="errorMessage"></div>
@@ -374,29 +262,6 @@
                     <div class="toggle-slider"></div>
                 </div>
                 <span class="wake-lock-label">Keep screen on</span>
-            </div>
-
-            <div class="add-section">
-                <input
-                    type="text"
-                    id="sectionInput"
-                    placeholder="Enter section name..."
-                    onkeypress="if(event.key === 'Enter') addSection()"
-                >
-                <button onclick="addSection()">Add Section</button>
-            </div>
-
-            <div class="add-exercise">
-                <select id="sectionSelect" class="section-selector">
-                    <option value="">Select section...</option>
-                </select>
-                <input
-                    type="text"
-                    id="exerciseInput"
-                    placeholder="Enter exercise name..."
-                    onkeypress="if(event.key === 'Enter') addExercise()"
-                >
-                <button onclick="addExercise()">Add Exercise</button>
             </div>
 
             <div id="exercisesContainer"></div>
@@ -415,29 +280,9 @@
             try {
                 const response = await fetch('/api/exercises');
                 exercises = await response.json();
-                updateSectionSelector();
                 renderExercises();
             } catch (error) {
                 showError('Failed to load exercises');
-            }
-        }
-
-        // Update section selector dropdown
-        function updateSectionSelector() {
-            const selector = document.getElementById('sectionSelect');
-            const sections = Object.keys(exercises);
-
-            selector.innerHTML = '<option value="">Select section...</option>';
-            sections.forEach(section => {
-                const option = document.createElement('option');
-                option.value = section;
-                option.textContent = section;
-                selector.appendChild(option);
-            });
-
-            // Select first section if none selected and sections exist
-            if (sections.length > 0 && !selector.value) {
-                selector.value = sections[0];
             }
         }
 
@@ -450,6 +295,8 @@
             }
             renderExercises();
         }
+
+        // Note: Section and exercise deletion moved to admin page
 
         // Render exercises organized by sections
         function renderExercises() {
@@ -478,9 +325,6 @@
                                 <span>${escapeHtml(section)}</span>
                             </div>
                             <div class="section-header-right">
-                                <button class="section-delete-btn" onclick="event.stopPropagation(); deleteSection('${sectionKey}')">
-                                    Delete Section
-                                </button>
                             </div>
                         </div>
                         <div class="section-content ${isExpanded ? '' : 'collapsed'}">
@@ -491,9 +335,6 @@
                                         <li class="exercise-item ${selectedExercises.has(key) ? 'selected' : ''}"
                                             onclick="toggleExercise('${sectionKey}', '${exercise.name.replace(/'/g, "\\'")}')">
                                             <span class="exercise-name">${escapeHtml(exercise.name)}</span>
-                                            <button class="delete-btn" onclick="event.stopPropagation(); deleteExercise('${sectionKey}', '${exercise.name.replace(/'/g, "\\'")}')">
-                                                Delete
-                                            </button>
                                         </li>
                                     `;
                                 }).join('')}
@@ -515,130 +356,7 @@
             renderExercises();
         }
 
-        // Add new section
-        async function addSection() {
-            const input = document.getElementById('sectionInput');
-            const name = input.value.trim();
-
-            if (!name) {
-                showError('Please enter a section name');
-                return;
-            }
-
-            try {
-                const response = await fetch('/api/sections', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name })
-                });
-
-                if (!response.ok) {
-                    const error = await response.json();
-                    showError(error.error || 'Failed to add section');
-                    return;
-                }
-
-                exercises = await response.json();
-                input.value = '';
-                hideError();
-                updateSectionSelector();
-                renderExercises();
-            } catch (error) {
-                showError('Failed to add section');
-            }
-        }
-
-        // Delete section
-        async function deleteSection(section) {
-            if (!confirm(`Delete section "${section}" and all its exercises?`)) {
-                return;
-            }
-
-            try {
-                const response = await fetch(`/api/sections/${encodeURIComponent(section)}`, {
-                    method: 'DELETE'
-                });
-
-                if (!response.ok) {
-                    const error = await response.json();
-                    showError(error.error || 'Failed to delete section');
-                    return;
-                }
-
-                exercises = await response.json();
-                // Remove selected exercises from deleted section
-                const keysToRemove = Array.from(selectedExercises).filter(key => key.startsWith(section + ':'));
-                keysToRemove.forEach(key => selectedExercises.delete(key));
-                updateSectionSelector();
-                renderExercises();
-            } catch (error) {
-                showError('Failed to delete section');
-            }
-        }
-
-        // Add new exercise
-        async function addExercise() {
-            const input = document.getElementById('exerciseInput');
-            const selector = document.getElementById('sectionSelect');
-            const name = input.value.trim();
-            const section = selector.value;
-
-            if (!name) {
-                showError('Please enter an exercise name');
-                return;
-            }
-
-            if (!section) {
-                showError('Please select a section');
-                return;
-            }
-
-            try {
-                const response = await fetch('/api/exercises', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ name, section })
-                });
-
-                if (!response.ok) {
-                    const error = await response.json();
-                    showError(error.error || 'Failed to add exercise');
-                    return;
-                }
-
-                exercises = await response.json();
-                input.value = '';
-                hideError();
-                updateSectionSelector();
-                renderExercises();
-            } catch (error) {
-                showError('Failed to add exercise');
-            }
-        }
-
-        // Delete exercise
-        async function deleteExercise(section, name) {
-            if (!confirm(`Delete "${name}" from "${section}"?`)) {
-                return;
-            }
-
-            try {
-                const response = await fetch(`/api/exercises/${encodeURIComponent(section)}/${encodeURIComponent(name)}`, {
-                    method: 'DELETE'
-                });
-
-                if (!response.ok) {
-                    showError('Failed to delete exercise');
-                    return;
-                }
-
-                exercises = await response.json();
-                selectedExercises.delete(`${section}:${name}`);
-                renderExercises();
-            } catch (error) {
-                showError('Failed to delete exercise');
-            }
-        }
+        // Note: Section and exercise management moved to admin page
 
         // Error handling
         function showError(message) {

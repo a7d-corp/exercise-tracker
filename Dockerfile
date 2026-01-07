@@ -9,7 +9,7 @@ COPY package.json package-lock.json* ./
 RUN npm install --production
 
 # Copy application files
-COPY server.js index.html ./
+COPY server.js index.html admin.html ./
 
 # Expose port
 EXPOSE 3000
